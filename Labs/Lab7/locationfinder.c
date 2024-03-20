@@ -2,27 +2,46 @@
 #define rightMotor 2
 
 void turn90(char direction);
+int* input();
+int go_to_x(int x, int curX);
+int go_to_y(int y, int curY);
+
+// Starting Position
+int curX = 1;
+int curY = 4;
 
 task main()
 {
-	// Starting coordinates in {x, y}, facing x
-	const int start[2] = {1,4};
-	int curX = start[0];
-	int curY = start[1];
-	char curDirection = 'x';
 	
 	SensorType[S3] = sensorEV3_Color;
 	SensorType[S4] = sensorEV3_Gyro;
 	
 	// target1 coordinates in {x,y}
-	int target1[2] = {6,5};
+	int *target;	
 	int detected = 0;
 	
-	if (curX < target1[0])
+	// Get target from user input
+	target = input();
+	
+	// Go to the target coordinates
+	curX = go_to_x(target[0], curX);
+	curY = go_to_y(target[1], curY);
+	
+}
+
+
+// Function to go to an X coordinate
+int go_to_x(int x, int curX)
+{
+	int detected = 0;
+	
+	// If the current X is less than the target
+	if (curX < x)
 	{
-		while (curX <= target1[0])
+		// Go there
+		while (curX <= x)
 		{
-			displayBigTextLine(4, "{	%d, %d}", curX, curY);
+			displayBigTextLine(6, "Current: {	%d, %d}", curX, curY);
 			
 			if (SensorValue[S3] > 25) 
 			{
@@ -44,17 +63,24 @@ task main()
 		curX--;
 	}
 	
+	return curX;
+}
+
+// Function to go to a y coordinate
+int go_to_y(int y, int curY)
+{
+	int detected = 0;
 	
-	if (curY > target1[1])
+	// If current y is greater than the target y
+	if (curY > y)
 	{
 		// turn left 90 degrees
 		turn90('L');
 		
-		// drive until curY = target1[y]
-		
-		while (curY >= target1[1])
+		// drive until curY = target y
+		while (curY >= y)
 		{
-			displayBigTextLine(4, "{	%d, %d}", curX, curY);
+			displayBigTextLine(6, "Current: {	%d, %d}", curX, curY);
 			
 			if (SensorValue[S3] > 25) 
 			{
@@ -74,13 +100,15 @@ task main()
 		}
 		
 	}
-	else if (curY < target1[1])
+	// Otherwise, it is less than, turn right
+	else if (curY < y)
 	{
 		turn90('R');
 		
-		while (curY <= target1[1])
+		// Drive until target
+		while (curY <= y)
 		{
-			displayBigTextLine(4, "{	%d, %d}", curX, curY);
+			displayBigTextLine(6, "Current: {	%d, %d}", curX, curY);
 			
 			if (SensorValue[S3] > 25) 
 			{
@@ -98,8 +126,46 @@ task main()
 			
 			setMotorSync(leftMotor, rightMotor, 0, 100);
 		}
-		
 	}
+	
+	return curY;
+}
+
+
+// Take user input and return coordinates as an array
+int* input()
+{
+	int temp_target[2] = {0, 0};
+	
+	
+	while(getButtonPress(buttonEnter) == 0)
+	{
+		displayBigTextLine(4, "Target: {	%d, %d}", temp_target[0], temp_target[1]);
+		
+		// Choosing target
+		if (getButtonPress(buttonUp))
+		{
+			temp_target[1] += 1;
+			sleep(80);
+		}
+		else if (getButtonPress(buttonDown))
+		{
+			temp_target[1] -= 1;
+			sleep(80);
+		}
+		else if (getButtonPress(buttonLeft))
+		{
+			temp_target[0] -= 1;
+			sleep(80);
+		}
+		else if (getButtonPress(buttonRight))
+		{
+			temp_target[0] += 1;
+			sleep(80);
+		}
+	}
+	
+	return temp_target;
 }
 
 
